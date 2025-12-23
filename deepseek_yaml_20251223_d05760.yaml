@@ -1,0 +1,38 @@
+version: '3'
+services:
+  technitium-primary:
+    image: technitium/dns-server:latest
+    container_name: technitium-primary
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+      - "5380:5380"
+    environment:
+      - DNS_SERVER_SETTINGS__Forwarders=cloud-chr-ip:53,1.1.1.1:53
+      - DNS_SERVER_SETTINGS__EnableHealthCheck=true
+      - DNS_SERVER_SETTINGS__HealthCheckDomain=example.com,example.net,example.org,ietf.org,w3.org
+      - DNS_SERVER_SETTINGS__HealthCheckInterval=28800  # 8 hours
+      - DNS_SERVER_SETTINGS__HealthCheckTimeout=10
+      - DNS_SERVER_SETTINGS__FailoverTimeout=30
+      - DNS_SERVER_SETTINGS__HealthCheckMinimumSuccess=1
+      - DNS_SERVER_SETTINGS__RetryFailedForwarder=true
+      - DNS_SERVER_SETTINGS__RetryInterval=28800  # 8 hours
+    volumes:
+      - ./technitium1-data:/etc/dns
+    restart: unless-stopped
+
+  technitium-secondary:
+    image: technitium/dns-server:latest
+    container_name: technitium-secondary
+    ports:
+      - "54:53/udp"
+      - "54:53/tcp"
+      - "5381:5380"
+    environment:
+      - DNS_SERVER_SETTINGS__Forwarders=cloud-chr-ip:53,1.1.1.1:53
+      - DNS_SERVER_SETTINGS__EnableHealthCheck=true
+      - DNS_SERVER_SETTINGS__HealthCheckDomain=example.com,example.net,example.org,ietf.org,w3.org
+      - DNS_SERVER_SETTINGS__HealthCheckInterval=28800
+    volumes:
+      - ./technitium2-data:/etc/dns
+    restart: unless-stopped
